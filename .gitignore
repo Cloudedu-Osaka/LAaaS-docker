@@ -11,3 +11,4 @@ elcampus_la/xapi_stmt_gen/log/*
 superset_db/data/*
 metabase/*
 **/.DS_Store
+.venv/

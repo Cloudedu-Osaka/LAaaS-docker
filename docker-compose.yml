@@ -13,96 +13,103 @@ services:
     working_dir: /usr/local/src/learninglocker
     command: bash -c "source ~/.bashrc && yarn migrate && pm2 start pm2/all.json && cd ../xapi-service && pm2 start pm2/xapi.json && pm2 logs"
   learninglocker_mongo:
-    image: mongo:4.0.8
+    image: mongo:4.0.27
     container_name: learninglocker_mongo
     restart: always
+    ports:
+      - "27017:27017"
     volumes:
       - ./learninglocker/mongo_data:/data/db
   learninglocker_redis:
-    image: redis:5.0.4
+    image: redis:5.0.14
     container_name: learninglocker_redis
     restart: always
+    ports:
+      - "6379:6379"
     volumes:
       - ./learninglocker/redis_data:/data
     command: redis-server --appendonly yes
-  xapi_stmt_gen:
-    build: xapi_stmt_gen
-    container_name: xapi_stmt_gen
-    volumes:
-      - ./xapi_stmt_gen/log:/usr/local/src/xapi_stmt_gen/log
-    tty: true
-    environment:
-      - TZ=Asia/Tokyo
-  openlrw_mongo:
-    image: mongo:latest
-    restart: always
-    env_file:
-      - open_lrw/.env
-    container_name: openlrw_mongo
-    volumes:
-      - ./open_lrw/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
-      - ./open_lrw/data:/data/db
-    ports:
-      - "27017:27017"
-  openlrw:
-    build:
-      context: open_lrw
-      dockerfile: Dockerfile
-    container_name: openlrw_web
-    depends_on:
-      - openlrw_mongo
-    ports:
-      - "9966:9966"
-    env_file:
-      - open_lrw/.env
-    command: bash -c "/app/docker-start.sh"
-  caliper_stmt_gen:
-    container_name: caliper_stmt_gen
-    build:
-      context: caliper
-      dockerfile: Dockerfile
-    env_file:
-      - caliper/.env
-    depends_on:
-      - caliper_log_db
-      - openlrw
-      - openlrw_mongo
-  caliper_log_db:
-    image: postgres:11
-    container_name: caliper_log_db
-    environment:
-      - POSTGRES_USER=caliper_cli
-      - POSTGRES_PASSWORD=caliper
-      - POSTGRES_DB=caliper_log
-    ports:
-      - "15432:5432"
-    volumes:
-      - ./caliper_log/init:/docker-entrypoint-initdb.d
-      - ./caliper_log/data:/var/lib/postgresql/data
-  superset:
-    build: superset
-    container_name: superset
-    ports:
-      - "8088:8088"
-    environment:
-      - LANG=en_US.utf-8
-    depends_on:
-      - superset_db
-    command: bash -c ". ./venv/bin/activate && superset runserver"
-  superset_db:
-    build: superset_db
-    container_name: superset_db
-    ports:
-      - "5433:5432"
-    volumes:
-      - ./superset_db/data:/var/lib/pgsql/9.6/data
-    user: postgres
-  jupyterhub:
-    build: jupyterhub
-    container_name: jupyterhub
-    ports:
-      - "8001:8000"
-networks:
-  default:
-    external:
-      name: moodle-docker_default
+#  xapi_stmt_gen:
+#    build: xapi_stmt_gen
+#    container_name: xapi_stmt_gen
+#    volumes:
+#      - ./xapi_stmt_gen/log:/usr/local/src/xapi_stmt_gen/log
+#    tty: true
+#    environment:
+#      - TZ=Asia/Tokyo
+#  openlrw_mongo:
+#    image: mongo:latest
+#    restart: always
+#    env_file:
+#      - open_lrw/.env
+#    container_name: openlrw_mongo
+#    volumes:
+#      - ./open_lrw/init-mongo.sh:/docker-entrypoint-initdb.d/init-mongo.sh
+#      - ./open_lrw/data:/data/db
+#    ports:
+#      - "27017:27017"
+#  openlrw:
+#    build:
+#      context: open_lrw
+#      dockerfile: Dockerfile
+#    container_name: openlrw_web
+#    depends_on:
+#      - openlrw_mongo
+#    ports:
+#      - "9966:9966"
+#    env_file:
+#      - open_lrw/.env
+#    command: bash -c "/app/docker-start.sh"
+#  caliper_stmt_gen:
+#    container_name: caliper_stmt_gen
+#    build:
+#      context: caliper
+#      dockerfile: Dockerfile
+#    env_file:
+#      - caliper/.env
+#    depends_on:
+#      - caliper_log_db
+#      - openlrw
+#      - openlrw_mongo
+#  caliper_log_db:
+#    image: postgres:11
+#    container_name: caliper_log_db
+#    environment:
+#      - POSTGRES_USER=caliper_cli
+#      - POSTGRES_PASSWORD=caliper
+#      - POSTGRES_DB=caliper_log
+#    ports:
+#      - "15432:5432"
+#    volumes:
+#      - ./caliper_log/init:/docker-entrypoint-initdb.d
+#      - ./caliper_log/data:/var/lib/postgresql/data
+#  superset:
+#    build: superset
+#    container_name: superset
+#    ports:
+#      - "8088:8088"
+#    environment:
+#      - LANG=en_US.utf-8
+#    depends_on:
+#      - superset_db
+#    command: bash -c ". ./venv/bin/activate && superset runserver"
+#  superset_db:
+#    build: superset_db
+#    container_name: superset_db
+#    ports:
+#      - "5433:5432"
+#    volumes:
+#      - ./superset_db/data:/var/lib/pgsql/9.6/data
+#    user: postgres
+#  jupyterhub:
+#    image: jupyterhub/jupyterhub:1.5
+#    container_name: jupyterhub
+#    ports:
+#      - "8001:8000"
+#    volumes:
+#      - /var/run/docker.sock:/var/run/docker.sock
+#    privileged: true
+#networks:
+#  default:
+#    external:
+#      name: moodle-docker_default
